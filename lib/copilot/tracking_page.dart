@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'reminder_settings_page.dart';
 
 class TrackingPage extends StatefulWidget {
@@ -28,6 +28,7 @@ class _TrackingPageState extends State<TrackingPage> {
   late int _asr;
   late int _maghrib;
   late int _isha;
+  late SharedPreferences _prefs;
 
   @override
   void initState() {
@@ -37,6 +38,27 @@ class _TrackingPageState extends State<TrackingPage> {
     _asr = widget.asr;
     _maghrib = widget.maghrib;
     _isha = widget.isha;
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _fajr = _prefs.getInt('fajr') ?? _fajr;
+      _zuhr = _prefs.getInt('zuhr') ?? _zuhr;
+      _asr = _prefs.getInt('asr') ?? _asr;
+      _maghrib = _prefs.getInt('maghrib') ?? _maghrib;
+      _isha = _prefs.getInt('isha') ?? _isha;
+    });
+    _savePreferences();
+  }
+
+  Future<void> _savePreferences() async {
+    await _prefs.setInt('fajr', _fajr);
+    await _prefs.setInt('zuhr', _zuhr);
+    await _prefs.setInt('asr', _asr);
+    await _prefs.setInt('maghrib', _maghrib);
+    await _prefs.setInt('isha', _isha);
   }
 
   void _updatePrayerCount(String prayer, int change) {
@@ -58,6 +80,7 @@ class _TrackingPageState extends State<TrackingPage> {
           _isha += change;
           break;
       }
+      _savePreferences();
     });
   }
 
@@ -68,6 +91,7 @@ class _TrackingPageState extends State<TrackingPage> {
       _asr = 0;
       _maghrib = 0;
       _isha = 0;
+      _savePreferences();
     });
   }
 
@@ -95,6 +119,7 @@ class _TrackingPageState extends State<TrackingPage> {
                   _asr--;
                   _maghrib--;
                   _isha--;
+                  _savePreferences();
                 });
               },
               child: const Text('Восполнить все намазы'),
@@ -107,6 +132,7 @@ class _TrackingPageState extends State<TrackingPage> {
                   _asr++;
                   _maghrib++;
                   _isha++;
+                  _savePreferences();
                 });
               },
               child: const Text('Добавить все намазы'),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 
@@ -17,6 +18,39 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   List<TimeOfDay> _reminderTimes = [const TimeOfDay(hour: 12, minute: 0)];
   final List<bool> _selectedDays = List.generate(7, (_) => false);
 
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _remindersPerDay = prefs.getInt('remindersPerDay') ?? 1;
+      _selectedDays.asMap().forEach((index, _) {
+        _selectedDays[index] = prefs.getBool('selectedDay_$index') ?? false;
+      });
+      _reminderTimes = List.generate(_remindersPerDay, (index) {
+        final hour = prefs.getInt('reminderTime_${index}_hour') ?? 12;
+        final minute = prefs.getInt('reminderTime_${index}_minute') ?? 0;
+        return TimeOfDay(hour: hour, minute: minute);
+      });
+    });
+  }
+
+  Future<void> _saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('remindersPerDay', _remindersPerDay);
+    for (int i = 0; i < _selectedDays.length; i++) {
+      await prefs.setBool('selectedDay_$i', _selectedDays[i]);
+    }
+    for (int i = 0; i < _reminderTimes.length; i++) {
+      await prefs.setInt('reminderTime_${i}_hour', _reminderTimes[i].hour);
+      await prefs.setInt('reminderTime_${i}_minute', _reminderTimes[i].minute);
+    }
+  }
+
   void _updateReminderTimes(int count) {
     setState(() {
       if (count > _reminderTimes.length) {
@@ -25,6 +59,14 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
       } else {
         _reminderTimes = _reminderTimes.sublist(0, count);
       }
+      _saveSettings();
+    });
+  }
+
+  void _toggleSelectedDay(int index) {
+    setState(() {
+      _selectedDays[index] = !_selectedDays[index];
+      _saveSettings();
     });
   }
 
@@ -34,8 +76,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
     }
   }
 
-  void _scheduleDailyNotification() async {
+  Future<void> _scheduleDailyNotification() async {
     await _requestNotificationPermission();
+    await _saveSettings();
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'daily_reminder_channel',
@@ -58,7 +101,8 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             _nextInstanceOfTime(_reminderTimes[i], j + 1),
             platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.alarmClock,
-            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+            uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
             matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           );
         }
@@ -92,7 +136,6 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
 
     return scheduledDate;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +185,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                           if (picked != null && picked != _reminderTimes[index]) {
                             setState(() {
                               _reminderTimes[index] = picked;
+                              _saveSettings();
                             });
                           }
                         },
@@ -163,9 +207,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             ToggleButtons(
               isSelected: _selectedDays,
               onPressed: (int index) {
-                setState(() {
-                  _selectedDays[index] = !_selectedDays[index];
-                });
+                _toggleSelectedDay(index);
               },
               children: const [
                 Text('Пн'),
