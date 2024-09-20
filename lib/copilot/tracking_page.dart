@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart'; // Подключаем permission_handler
 
 import 'main.dart';
 
@@ -71,6 +72,39 @@ class _TrackingPageState extends State<TrackingPage> {
     });
   }
 
+  Future<void> _requestNotificationPermission() async {
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+  }
+
+  void _scheduleMinuteNotification() async {
+    // Сначала проверим и запросим разрешение на уведомления
+    await _requestNotificationPermission();
+
+    // После получения разрешения настраиваем уведомления
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'minute_reminder_channel',
+      'Minute Reminders',
+      channelDescription: 'Channel for minute reminders',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    await flutterLocalNotificationsPlugin.periodicallyShow(
+      0,
+      'Ежеминутное уведомление',
+      'Это уведомление приходит раз в минуту',
+      RepeatInterval.everyMinute,
+      platformChannelSpecifics,
+      androidAllowWhileIdle: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -116,8 +150,8 @@ class _TrackingPageState extends State<TrackingPage> {
               child: const Text('Сбросить все данные'),
             ),
             ElevatedButton(
-              onPressed: () => {},
-              child: const Text('Настроить напоминания'),
+              onPressed: _scheduleMinuteNotification,
+              child: const Text('Запустить ежеминутные уведомления'),
             ),
           ],
         ),
