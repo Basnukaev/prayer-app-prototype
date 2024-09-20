@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:prayer_app/copilot/tracking_page.dart';
-
 import 'calculator_page.dart';
 
 class InputPage extends StatefulWidget {
+  const InputPage({super.key});
+
   @override
   _InputPageState createState() => _InputPageState();
 }
@@ -88,7 +89,7 @@ class _InputPageState extends State<InputPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => TrackingPage(

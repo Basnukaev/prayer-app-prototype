@@ -50,7 +50,6 @@ class _TrackingPageState extends State<TrackingPage> {
       _maghrib = _prefs.getInt('maghrib') ?? _maghrib;
       _isha = _prefs.getInt('isha') ?? _isha;
     });
-    _savePreferences();
   }
 
   Future<void> _savePreferences() async {
@@ -65,19 +64,19 @@ class _TrackingPageState extends State<TrackingPage> {
     setState(() {
       switch (prayer) {
         case 'fajr':
-          _fajr += change;
+          _fajr = (_fajr + change).clamp(0, double.infinity).toInt();
           break;
         case 'zuhr':
-          _zuhr += change;
+          _zuhr = (_zuhr + change).clamp(0, double.infinity).toInt();
           break;
         case 'asr':
-          _asr += change;
+          _asr = (_asr + change).clamp(0, double.infinity).toInt();
           break;
         case 'maghrib':
-          _maghrib += change;
+          _maghrib = (_maghrib + change).clamp(0, double.infinity).toInt();
           break;
         case 'isha':
-          _isha += change;
+          _isha = (_isha + change).clamp(0, double.infinity).toInt();
           break;
       }
       _savePreferences();
@@ -91,6 +90,28 @@ class _TrackingPageState extends State<TrackingPage> {
       _asr = 0;
       _maghrib = 0;
       _isha = 0;
+      _savePreferences();
+    });
+  }
+
+  void _addAllPrayers() {
+    setState(() {
+      _fajr++;
+      _zuhr++;
+      _asr++;
+      _maghrib++;
+      _isha++;
+      _savePreferences();
+    });
+  }
+
+  void _compensateAllPrayers() {
+    setState(() {
+      _fajr = (_fajr - 1).clamp(0, double.infinity).toInt();
+      _zuhr = (_zuhr - 1).clamp(0, double.infinity).toInt();
+      _asr = (_asr - 1).clamp(0, double.infinity).toInt();
+      _maghrib = (_maghrib - 1).clamp(0, double.infinity).toInt();
+      _isha = (_isha - 1).clamp(0, double.infinity).toInt();
       _savePreferences();
     });
   }
@@ -112,29 +133,11 @@ class _TrackingPageState extends State<TrackingPage> {
             _buildPrayerRow('Иша', _isha, 'isha'),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _fajr--;
-                  _zuhr--;
-                  _asr--;
-                  _maghrib--;
-                  _isha--;
-                  _savePreferences();
-                });
-              },
+              onPressed: _compensateAllPrayers,
               child: const Text('Восполнить все намазы'),
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _fajr++;
-                  _zuhr++;
-                  _asr++;
-                  _maghrib++;
-                  _isha++;
-                  _savePreferences();
-                });
-              },
+              onPressed: _addAllPrayers,
               child: const Text('Добавить все намазы'),
             ),
             ElevatedButton(
@@ -146,7 +149,7 @@ class _TrackingPageState extends State<TrackingPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ReminderSettingsPage()),
+                  MaterialPageRoute(builder: (context) => const ReminderSettingsPage()),
                 );
               },
               child: const Text('Настроить напоминания'),

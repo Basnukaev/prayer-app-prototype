@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:prayer_app/copilot/tracking_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'welcome_page.dart';
 import 'input_page.dart';
+import 'welcome_page.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+  if (isFirstLaunch) {
+    await prefs.setBool('isFirstLaunch', false);
+  }
 
   final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
 
@@ -19,18 +28,20 @@ void main() async {
   tz.setLocalLocation(tz.getLocation(currentTimeZone));
 
   const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
   const InitializationSettings initializationSettings =
-  InitializationSettings(android: initializationSettingsAndroid);
+      InitializationSettings(android: initializationSettingsAndroid);
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
-  runApp(const MyApp());
+  runApp(MyApp(isFirstLaunch: isFirstLaunch));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isFirstLaunch;
+
+  const MyApp({super.key, required this.isFirstLaunch});
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +51,11 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      initialRoute: '/',
+      initialRoute: isFirstLaunch ? '/' : '/tracking',
       routes: {
-        '/': (context) => WelcomePage(),
-        '/input': (context) => InputPage(),
+        '/': (context) => const WelcomePage(),
+        '/input': (context) => const InputPage(),
+        '/tracking': (context) => const TrackingPage(fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0),
       },
     );
   }
