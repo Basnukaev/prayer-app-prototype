@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:timezone/timezone.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import 'main.dart';
 
@@ -46,7 +46,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
       showWhen: false,
     );
     const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+    NotificationDetails(android: androidPlatformChannelSpecifics);
 
     for (int i = 0; i < _remindersPerDay; i++) {
       for (int j = 0; j < 7; j++) {
@@ -59,18 +59,25 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.alarmClock,
             uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
+            UILocalNotificationDateInterpretation.absoluteTime,
             matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           );
         }
       }
     }
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Напоминания настроены')),
+      );
+    }
   }
 
-  TZDateTime _nextInstanceOfTime(TimeOfDay time) {
-    final TZDateTime now = TZDateTime.now(local);
-    final TZDateTime scheduledDate = TZDateTime(
-      local,
+  tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    final tz.TZDateTime scheduledDate = tz.TZDateTime(
+      tz.local,
       now.year,
       now.month,
       now.day,
@@ -116,6 +123,12 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                         final TimeOfDay? picked = await showTimePicker(
                           context: context,
                           initialTime: _reminderTimes[index],
+                          builder: (BuildContext context, Widget? child) {
+                            return MediaQuery(
+                              data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                              child: child!,
+                            );
+                          },
                         );
                         if (picked != null && picked != _reminderTimes[index]) {
                           setState(() {
@@ -138,6 +151,12 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             const SizedBox(height: 20),
             const Text('Выберите дни недели для напоминаний:'),
             ToggleButtons(
+              isSelected: _selectedDays,
+              onPressed: (int index) {
+                setState(() {
+                  _selectedDays[index] = !_selectedDays[index];
+                });
+              },
               children: const [
                 Text('Пн'),
                 Text('Вт'),
@@ -147,12 +166,6 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                 Text('Сб'),
                 Text('Вс'),
               ],
-              isSelected: _selectedDays,
-              onPressed: (int index) {
-                setState(() {
-                  _selectedDays[index] = !_selectedDays[index];
-                });
-              },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
