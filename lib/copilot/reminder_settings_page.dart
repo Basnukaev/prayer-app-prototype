@@ -55,11 +55,10 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             j * _remindersPerDay + i,
             'Prayer Reminder',
             'Don\'t forget to pray',
-            _nextInstanceOfTime(_reminderTimes[i]),
+            _nextInstanceOfTime(_reminderTimes[i], j + 1),
             platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.alarmClock,
-            uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           );
         }
@@ -74,9 +73,9 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
     }
   }
 
-  tz.TZDateTime _nextInstanceOfTime(TimeOfDay time) {
+  tz.TZDateTime _nextInstanceOfTime(TimeOfDay time, int dayOfWeek) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    final tz.TZDateTime scheduledDate = tz.TZDateTime(
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
@@ -84,8 +83,16 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
       time.hour,
       time.minute,
     );
-    return scheduledDate.isBefore(now) ? scheduledDate.add(const Duration(days: 1)) : scheduledDate;
+
+    int daysUntilNext = (dayOfWeek - now.weekday) % 7;
+    if (daysUntilNext <= 0 && scheduledDate.isBefore(now)) {
+      daysUntilNext += 7;
+    }
+    scheduledDate = scheduledDate.add(Duration(days: daysUntilNext));
+
+    return scheduledDate;
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -113,39 +120,42 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             ),
             const SizedBox(height: 20),
             ...List.generate(_remindersPerDay, (index) {
-              return Row(
-                children: [
-                  Text('Напоминание ${index + 1}:'),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () async {
-                        final TimeOfDay? picked = await showTimePicker(
-                          context: context,
-                          initialTime: _reminderTimes[index],
-                          builder: (BuildContext context, Widget? child) {
-                            return MediaQuery(
-                              data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-                              child: child!,
-                            );
-                          },
-                        );
-                        if (picked != null && picked != _reminderTimes[index]) {
-                          setState(() {
-                            _reminderTimes[index] = picked;
-                          });
-                        }
-                      },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.all(10.0),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Text('Напоминание ${index + 1}:'),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () async {
+                          final TimeOfDay? picked = await showTimePicker(
+                            context: context,
+                            initialTime: _reminderTimes[index],
+                            builder: (BuildContext context, Widget? child) {
+                              return MediaQuery(
+                                data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (picked != null && picked != _reminderTimes[index]) {
+                            setState(() {
+                              _reminderTimes[index] = picked;
+                            });
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.all(10.0),
+                          ),
+                          child: Text(_reminderTimes[index].format(context)),
                         ),
-                        child: Text(_reminderTimes[index].format(context)),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }),
             const SizedBox(height: 20),
