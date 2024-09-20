@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import 'main.dart';
 
 class TrackingPage extends StatefulWidget {
   final int fajr;
@@ -7,7 +10,7 @@ class TrackingPage extends StatefulWidget {
   final int maghrib;
   final int isha;
 
-  TrackingPage({
+  const TrackingPage({super.key,
     required this.fajr,
     required this.zuhr,
     required this.asr,
@@ -58,11 +61,21 @@ class _TrackingPageState extends State<TrackingPage> {
     });
   }
 
+  void _resetAllPrayers() {
+    setState(() {
+      _fajr = 0;
+      _zuhr = 0;
+      _asr = 0;
+      _maghrib = 0;
+      _isha = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Отслеживание намазов'),
+        title: const Text('Отслеживание намазов'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -73,7 +86,7 @@ class _TrackingPageState extends State<TrackingPage> {
             _buildPrayerRow('Аср', _asr, 'asr'),
             _buildPrayerRow('Магриб', _maghrib, 'maghrib'),
             _buildPrayerRow('Иша', _isha, 'isha'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 setState(() {
@@ -84,7 +97,7 @@ class _TrackingPageState extends State<TrackingPage> {
                   _isha--;
                 });
               },
-              child: Text('Восполнить все намазы'),
+              child: const Text('Восполнить все намазы'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -96,7 +109,15 @@ class _TrackingPageState extends State<TrackingPage> {
                   _isha++;
                 });
               },
-              child: Text('Добавить все намазы'),
+              child: const Text('Добавить все намазы'),
+            ),
+            ElevatedButton(
+              onPressed: _resetAllPrayers,
+              child: const Text('Сбросить все данные'),
+            ),
+            ElevatedButton(
+              onPressed: () => {},
+              child: const Text('Настроить напоминания'),
             ),
           ],
         ),
@@ -112,12 +133,12 @@ class _TrackingPageState extends State<TrackingPage> {
         Row(
           children: [
             IconButton(
-              icon: Icon(Icons.remove, color: Colors.green),
+              icon: const Icon(Icons.remove, color: Colors.green),
               onPressed: () => _updatePrayerCount(prayer, -1),
             ),
             Text(count.toString()),
             IconButton(
-              icon: Icon(Icons.add, color: Colors.red),
+              icon: const Icon(Icons.add, color: Colors.red),
               onPressed: () => _updatePrayerCount(prayer, 1),
             ),
           ],
