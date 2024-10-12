@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'main.dart';
@@ -73,13 +73,14 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   Future<void> _requestNotificationPermission() async {
     if (await Permission.notification.isDenied) {
       await Permission.notification.request();
+      await _requestExactAlarmPermissionsDialog();
     }
   }
 
   Future<void> _scheduleDailyNotification() async {
     await _requestNotificationPermission();
     await _saveSettings();
-
+    await _requestExactAlarmPermissionsDialog();
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'daily_reminder_channel',
       'Daily Reminders',
@@ -89,7 +90,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
       showWhen: false,
     );
     const NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(android: androidPlatformChannelSpecifics);
 
     for (int i = 0; i < _remindersPerDay; i++) {
       for (int j = 0; j < 7; j++) {
@@ -102,7 +103,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             platformChannelSpecifics,
             androidScheduleMode: AndroidScheduleMode.alarmClock,
             uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+                UILocalNotificationDateInterpretation.absoluteTime,
             matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
           );
         }
@@ -114,6 +115,40 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Напоминания настроены')),
       );
+    }
+  }
+
+  Future<void> _requestExactAlarmPermissionsDialog() async {
+    if (!await Permission.scheduleExactAlarm.isGranted) {
+      bool shouldRequest = await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Permission Required'),
+                content: const Text('Exact alarms permission is required for notifications.'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          ) ??
+          false;
+
+      if (shouldRequest) {
+        var isGranted = await Permission.scheduleExactAlarm.request().isGranted;
+        if (!isGranted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Permission denied. Notifications will not work.')),
+          );
+        }
+      }
     }
   }
 

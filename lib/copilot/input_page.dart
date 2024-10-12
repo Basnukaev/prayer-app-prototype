@@ -54,7 +54,7 @@ class _InputPageState extends State<InputPage> {
             ),
             TextField(
               controller: _allController,
-              decoration: const InputDecoration(labelText: 'Все намазы'),
+              decoration: const InputDecoration(labelText: 'Каждый намаз'),
               keyboardType: TextInputType.number,
               onChanged: (value) {
                 setState(() {
