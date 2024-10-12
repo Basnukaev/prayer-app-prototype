@@ -239,20 +239,27 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
             }),
             const SizedBox(height: 20),
             const Text('Выберите дни недели для напоминаний:'),
-            ToggleButtons(
-              isSelected: _selectedDays,
-              onPressed: (int index) {
-                _toggleSelectedDay(index);
-              },
-              children: const [
-                Text('Пн'),
-                Text('Вт'),
-                Text('Ср'),
-                Text('Чт'),
-                Text('Пт'),
-                Text('Сб'),
-                Text('Вс'),
-              ],
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ToggleButtons(
+                    isSelected: _selectedDays,
+                    onPressed: (int index) {
+                      _toggleSelectedDay(index);
+                    },
+                    children: const [
+                      Text('Пн'),
+                      Text('Вт'),
+                      Text('Ср'),
+                      Text('Чт'),
+                      Text('Пт'),
+                      Text('Сб'),
+                      Text('Вс'),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -263,5 +270,4 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
         ),
       ),
     );
-  }
-}
+  }}
