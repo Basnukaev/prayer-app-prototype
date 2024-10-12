@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   int _remindersPerDay = 1;
   List<TimeOfDay> _reminderTimes = [const TimeOfDay(hour: 12, minute: 0)];
   final List<bool> _selectedDays = List.generate(7, (_) => false);
+  bool _isLoading = true;  // Добавлено
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
         final minute = prefs.getInt('reminderTime_${index}_minute') ?? 0;
         return TimeOfDay(hour: hour, minute: minute);
       });
+      _isLoading = false;  // Устанавливаем в false после завершения загрузки
     });
   }
 
@@ -174,6 +177,12 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),  // Показать индикатор загрузки
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Настройки напоминаний'),

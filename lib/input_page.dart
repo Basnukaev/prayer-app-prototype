@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:prayer_app/copilot/tracking_page.dart';
+import 'package:prayer_app/tracking_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'calculator_page.dart';
 
 class InputPage extends StatefulWidget {
@@ -17,13 +18,23 @@ class _InputPageState extends State<InputPage> {
   final TextEditingController _ishaController = TextEditingController();
   final TextEditingController _allController = TextEditingController();
 
+  Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isFirstLaunch', false);
+    await prefs.setInt('fajr', int.tryParse(_fajrController.text) ?? 0);
+    await prefs.setInt('zuhr', int.tryParse(_zuhrController.text) ?? 0);
+    await prefs.setInt('asr', int.tryParse(_asrController.text) ?? 0);
+    await prefs.setInt('maghrib', int.tryParse(_maghribController.text) ?? 0);
+    await prefs.setInt('isha', int.tryParse(_ishaController.text) ?? 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ввод пропущенных намазов'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -88,17 +99,12 @@ class _InputPageState extends State<InputPage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await _savePreferences();
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => TrackingPage(
-                      fajr: int.tryParse(_fajrController.text) ?? 0,
-                      zuhr: int.tryParse(_zuhrController.text) ?? 0,
-                      asr: int.tryParse(_asrController.text) ?? 0,
-                      maghrib: int.tryParse(_maghribController.text) ?? 0,
-                      isha: int.tryParse(_ishaController.text) ?? 0,
-                    ),
+                    builder: (context) => const TrackingPage(),
                   ),
                 );
               },

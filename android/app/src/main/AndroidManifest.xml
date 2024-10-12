@@ -1,22 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.prayer_app">
 
-    <!-- Разрешение для уведомлений начиная с Android 13 -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-
-    <!-- Разрешение для перезапуска уведомлений после перезагрузки устройства -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-
     <!-- Разрешение на точные (exact) уведомления, если оно необходимо -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
 
-    <!-- Разрешение для полноэкранных уведомлений (если нужно) -->
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
 
     <application
         android:label="Счётчик молитв"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false">>
 
         <!-- Описание активности вашего приложения -->
         <activity
@@ -28,7 +21,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
-            android:showWhenLocked="true"
+            android:showWhenLocked="false"
             android:turnScreenOn="true">
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"

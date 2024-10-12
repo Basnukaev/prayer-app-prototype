@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:prayer_app/copilot/tracking_page.dart';
+import 'package:prayer_app/tracking_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-import 'input_page.dart';
+import '../input_page.dart';
 import 'welcome_page.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -18,9 +18,6 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
 
-  if (isFirstLaunch) {
-    await prefs.setBool('isFirstLaunch', false);
-  }
 
   final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
 
@@ -55,7 +52,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const WelcomePage(),
         '/input': (context) => const InputPage(),
-        '/tracking': (context) => const TrackingPage(fajr: 0, zuhr: 0, asr: 0, maghrib: 0, isha: 0),
+        '/tracking': (context) => const TrackingPage(),
       },
     );
   }
