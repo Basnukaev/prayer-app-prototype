@@ -34,3 +34,8 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: ArabicFont
+      fonts:
+        - asset: assets/fonts/Simplified Arabic.ttf
+
